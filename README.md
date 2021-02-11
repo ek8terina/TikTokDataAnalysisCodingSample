@@ -14,3 +14,5 @@ Data_Analysis.Rmd conducts DiD analysis between selected communities, checks tre
 Data_Analysis.pdf is the knitted version of the above R markdown file
 
 Final Work Sample... is the pdf version of thesis version 1. Includes all figures created and referenced in Data_Analysis
+
+Thank you to David Teather for his TikTokApi (https://github.com/davidteather/TikTok-Api)
