@@ -12,3 +12,5 @@ Data_Cleaning.R takes raw data and writes cleaned data adding day variables amon
 Data_Analysis.Rmd conducts DiD analysis between selected communities, checks trends to ensure decent comparability, and constructs a few additional tables for simple data visualization
 
 Data_Analysis.pdf is the knitted version of the above R markdown file
+
+Final Work Sample... is the pdf version of thesis version 1. Includes all figures created and referenced in Data_Analysis
