@@ -17,9 +17,12 @@ api = TikTokApi.get_instance(use_test_endpoints=True, use_selenium= False)
 #count of content to pull form each tag.
 c = 45
 
+#verifyFp taken from website cookie
+verify = ""
+
 #pulling selected count of content from each tag and saving in a csv file to access in cleaning and analysis
 for h in tags['hashtags']:
-    hashtag_videos = api.byHashtag(h, count=c, custom_verifyFp="verify_kkzz05rr_I7MxHBkI_9baU_4Tpz_8sIO_JzrZ3zoVlH9Q", language='en', proxy=None)
+    hashtag_videos = api.byHashtag(h, count=c, custom_verifyFp=verify, language='en', proxy=None)
     hashtag_videos = [simple_dict(v) for v in hashtag_videos]
     hashtag_videos_df = pd.DataFrame(hashtag_videos)
     hashtag_videos_df.to_csv('/Users/ekaterinafedorova/Documents/Senior Thesis/Raw Data/{}_videos.csv'.format(h), index=False)
