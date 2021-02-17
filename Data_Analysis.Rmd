@@ -1,0 +1,125 @@
+---
+title: "TikTok Data Analysis"
+author: "Ekaterina Fedorova"
+date: "2/11/2021"
+header-includes:
+   - \usepackage{dcolumn} 
+   - \usepackage{float}
+   - \usepackage{lipsum}
+   - \usepackage{booktabs}
+output:
+   pdf_document:
+     latex_engine: xelatex
+---
+
+```{r housekeeping, include = FALSE}
+#housekeeping
+library(stargazer)
+library(ggplot2)
+library(dplyr)
+fileroot_finaldata = c("/Users/ekaterinafedorova/Documents/Econ 191/Data/Cleaned")
+
+#reading in files
+disabilityvideos_all = read.csv(file.path(fileroot_finaldata,"disabilityvideos_all"))
+lgbtqvideos_all = read.csv(file.path(fileroot_finaldata,"lgbtqvideos_all"))
+
+disxlgbtq = read.csv(file.path(fileroot_finaldata,"disxlgbtq"))
+```
+
+
+#Descriptive Statistics (Tables 1 and 2, page 15)
+
+```{r decriptive, results = 'asis', echo = FALSE, warning = FALSE, message= FALSE}
+dis_star = disabilityvideos_all %>% select(video_length, n_likes, n_shares,n_comments, n_plays)
+lgbtq_star = lgbtqvideos_all %>% select(video_length, n_likes, n_shares,n_comments, n_plays)
+
+names(dis_star)[1] = "Length of Video"
+names(dis_star)[2] = "# of Likes"
+names(dis_star)[3] = "# of Shares"
+names(dis_star)[4] = "# of Comments"
+names(dis_star)[5] = "# of Plays"
+
+names(lgbtq_star)[1] = "Length of Video"
+names(lgbtq_star)[2] = "# of Likes"
+names(lgbtq_star)[3] = "# of Shares"
+names(lgbtq_star)[4] = "# of Comments"
+names(lgbtq_star)[5] = "# of Plays"
+
+stargazer(dis_star, title="Descriptive statistics: Disability Community Oct 1st - Dec 13th")
+
+stargazer(lgbtq_star, title="Descriptive statistics: LGBTQ Community Oct 1st - Dec 13th")
+
+```
+
+#DiD Regression - VIDEO PLAYS (Table 3, Page 16)
+
+```{r videoplays, results = 'asis', echo = FALSE, warning = FALSE, message= FALSE}
+dId2 <- lm(data = disxlgbtq, n_plays~ awarenessday + interaction + factor(timestamp) + factor(user_name) - 1)
+dId2.2 <- lm(data = disxlgbtq, n_plays~ awarenessday + interaction + factor(timestamp) - 1)
+
+stargazer(dId2.2, dId2, title = "DiD Regression (LGBTQ): Dec 3rd Disability Awareness Day as Treatment", ci=FALSE, no.space = TRUE, report = c("vc*"), header = FALSE, table.placement = "H", omit = c("user_name","timestamp"),
+          covariate.labels = c("Awareness Day (treatment)", "Interaction"),
+          dep.var.labels   = "Video Plays",
+          add.lines = list(c("User Fixed effects?", "no", "yes"), c("Time Fixed effects?", "yes", "yes"))
+         )
+```
+
+#DiD Regression - VIDEO LIKES (Table 4, Page 16)
+
+```{r videolikes, results = 'asis', echo = FALSE, warning = FALSE, message= FALSE}
+dId2 <- lm(data = disxlgbtq, n_likes~ awarenessday + interaction + factor(timestamp) + factor(user_name) - 1)
+dId2.2 <- lm(data = disxlgbtq, n_likes~ awarenessday + interaction + factor(timestamp) - 1)
+
+stargazer(dId2.2, dId2, title = "DiD Regression (LGBTQ): Dec 3rd Disability Awareness Day as Treatment", ci=FALSE, no.space = TRUE, report = c("vc*"), header = FALSE, table.placement = "H", omit = c("user_name","timestamp"),
+          covariate.labels = c("Awareness Day (treatment)", "Interaction"),
+          dep.var.labels   = "Video Likes",
+          add.lines = list(c("User Fixed effects?", "no", "yes"), c("Time Fixed effects?", "yes", "yes"))
+         )
+```
+
+#Checking Trends (Figures 1 and 2, Page 17)
+
+```{r figures, echo = FALSE, warning = FALSE, message= FALSE}
+disxlgbtq_grouped = disxlgbtq %>% group_by(timestamp, awarenessday) %>% summarise(average_plays = mean(n_plays))
+
+g3 = ggplot(disxlgbtq_grouped, aes(timestamp, average_plays, group = factor(awarenessday),color = factor(awarenessday))) + geom_line() + theme_minimal() + ylab("Average Plays of Videos Created in Period") + xlab("Period (48 hours)") + labs(title = "Video Plays Across Disability and LGBTQ Communities", caption="Note: Oct 1st - Oct 2nd = Period 1", color = "Community") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + scale_color_discrete(labels = c("LGBTQ (Control)", "Disability (Treated)"))
+
+g3
+
+ggsave(g3, filename = "/Users/ekaterinafedorova/Documents/Coding Project Sample/Figure1.pdf",height = 5, width = 8)
+
+disxlgbtq_grouped2 = disxlgbtq %>% group_by(timestamp, awarenessday) %>% summarise(average_likes = mean(n_likes))
+disxlgbtq_grouped4 = disxlgbtq %>% group_by(timestamp, awarenessday) %>% summarise(average_shares = mean(n_shares))
+disxlgbtq_grouped3 = disxlgbtq %>% group_by(timestamp, awarenessday) %>% summarise(average_comments = mean(n_comments))
+
+a1 = ggplot(disxlgbtq_grouped2, aes(timestamp, average_likes, group = factor(awarenessday),color = factor(awarenessday))) + geom_line() + theme_minimal() + ylab("Average Likes of Videos Created in Period") + xlab("Period (48 hours)") + labs(title = "Video Likes Across Disability and LGBTQ Communities", caption="Note: Oct 1st - Oct 2nd = Period 1", color = "Community") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + scale_color_discrete(labels = c("LGBTQ (Control)", "Disability (Treated)"))
+
+a1
+
+ggsave(a1, filename = "/Users/ekaterinafedorova/Documents/Coding Project Sample/Figure2.pdf",height = 5, width = 8)
+```
+
+#Checking Trends (Figures 3 and 4, Page 18)
+
+```{r figuresagain, echo = FALSE, warning = FALSE, message= FALSE}
+a2 = ggplot(disxlgbtq_grouped3, aes(timestamp, average_comments, group = factor(awarenessday),color = factor(awarenessday))) + geom_line() + theme_minimal() + ylab("Average Comments of Videos Created in Period") + xlab("Period (48 hours)") + labs(title = "Video Comments Across Disability and LGBTQ Communities", caption="Note: Oct 1st - Oct 2nd = Period 1", color = "Community") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + scale_color_discrete(labels = c("LGBTQ (Control)", "Disability (Treated)"))
+
+a2
+
+a3 = ggplot(disxlgbtq_grouped4, aes(timestamp, average_shares, group = factor(awarenessday),color = factor(awarenessday))) + geom_line() + theme_minimal() + ylab("Average Shares of Videos Created in Period") + xlab("Period (48 hours)") + labs(title = "Video Shares Across Disability and LGBTQ Communities", caption="Note: Oct 1st - Oct 2nd = Period 1", color = "Community") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + geom_vline(xintercept = 32, linetype="dashed", color = "green") + scale_color_discrete(labels = c("LGBTQ (Control)", "Disability (Treated)"))
+
+a3
+
+ggsave(a3, filename = "/Users/ekaterinafedorova/Documents/Coding Project Sample/Figure4.pdf",height = 5, width = 8)
+
+ggsave(a2, filename = "/Users/ekaterinafedorova/Documents/Coding Project Sample/Figure3.pdf",height = 5, width = 8)
+```
+
+#Appendix (Table 5, Page 20)
+
+```{r appendix, results='asis', echo = FALSE, warning = FALSE, message= FALSE}
+tagcounts = read.csv("/Users/ekaterinafedorova/Downloads/tagcounts.csv")
+
+stargazer(tagcounts[1:9,], summary=FALSE, title="Tag Counts In Disability and LGBTQ Communities")
+```
+
